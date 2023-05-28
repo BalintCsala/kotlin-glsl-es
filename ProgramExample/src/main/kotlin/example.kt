@@ -1,6 +1,6 @@
 import com.salakheev.shaderbuilderkt.annotations.ShaderProgram
-import com.salakheev.shaderbuilderkt.examples.SimpleFragmentShader
-import com.salakheev.shaderbuilderkt.examples.SimpleVertexShader
+import com.salakheev.shaderbuilderkt.examples.ShaderTest
+import com.salakheev.shaderbuilderkt.sources.Stage
 
 /**
  * Here we use [ShaderProgram] annotation to generate [SimpleShaderProgramSources]
@@ -8,7 +8,7 @@ import com.salakheev.shaderbuilderkt.examples.SimpleVertexShader
  *
  * @see [ShaderProgram]
  */
-@ShaderProgram(SimpleVertexShader::class, SimpleFragmentShader::class)
+@ShaderProgram(ShaderTest::class)
 class SimpleShaderProgram(receiveShadow: Boolean, alphaTest: Boolean)
 
 /**
@@ -23,5 +23,5 @@ fun main(args: Array<String>) {
     /**
      * Or you can get GLSL source directly from [ShaderBuilder] instance
      */
-    println(SimpleVertexShader(true).getSource())
+    println(ShaderTest().getSource(Stage.FRAGMENT))
 }

@@ -1,7 +1,7 @@
 package com.salakheev.shaderbuilderkt.sources
 
 interface ShaderSourceProvider {
-	fun getSource(): String
+	fun getSource(stage: Stage): String
 }
 
 interface ShaderProgramSources {

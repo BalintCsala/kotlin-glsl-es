@@ -3,6 +3,7 @@ package com.salakheev.shaderbuilderkt
 import com.salakheev.shaderbuilderkt.annotations.ShaderIntRange
 import com.salakheev.shaderbuilderkt.annotations.ShaderProgram
 import com.salakheev.shaderbuilderkt.sources.ShaderSourceProvider
+import com.salakheev.shaderbuilderkt.sources.Stage
 import com.x5.template.Chunk
 import java.lang.IllegalArgumentException
 import javax.activation.UnsupportedDataTypeException
@@ -22,8 +23,7 @@ import javax.lang.model.type.TypeMirror
 class ProgramProcessor(private val env: ProcessingEnvironment, private val programType: TypeElement, private val chunk: Chunk) {
 	private val sourceClassName = programType.simpleName
 	private val generatedClassName = "${sourceClassName}Sources"
-	private val vertex: TypeElement
-	private val fragment: TypeElement
+	private val source: TypeElement
 
 	init {
 		val packageName = programType.getPackageName()
@@ -35,8 +35,7 @@ class ProgramProcessor(private val env: ProcessingEnvironment, private val progr
 		chunk.set("sourceName", sourceClassName)
 
 		val annotation = programType.getAnnotation(ShaderProgram::class.java)
-		vertex = getAnnotationValue(annotation) { a -> a.vertex }
-		fragment = getAnnotationValue(annotation) { a -> a.fragment }
+		source = getAnnotationValue(annotation) { a -> a.source }
 
 		val programConstructor = getTypeConstructor(programType)
 		processConstructor(programConstructor)
@@ -111,14 +110,13 @@ class ProgramProcessor(private val env: ProcessingEnvironment, private val progr
 
 	private fun getShaderSources(paramValues: Map<String, Any>): Pair<String, String> {
 		val classLoader = javaClass.classLoader
-		val vertexClass = classLoader.loadClass(vertex.qualifiedName.toString())
-		val fragmentClass = classLoader.loadClass(fragment.qualifiedName.toString())
-		val vertexSource = prepareShaderSource(vertex, vertexClass, paramValues)
-		val fragmentSource = prepareShaderSource(fragment, fragmentClass, paramValues)
+		val sourceClass = classLoader.loadClass(source.qualifiedName.toString())
+		val vertexSource = prepareShaderSource(source, sourceClass, paramValues, Stage.VERTEX)
+		val fragmentSource = prepareShaderSource(source, sourceClass, paramValues, Stage.FRAGMENT)
 		return Pair(vertexSource, fragmentSource)
 	}
 
-	private fun prepareShaderSource(typeElement: TypeElement, shaderClass: Class<*>, paramValues: Map<String, Any>): String {
+	private fun prepareShaderSource(typeElement: TypeElement, shaderClass: Class<*>, paramValues: Map<String, Any>, stage: Stage): String {
 		val element = getTypeConstructor(typeElement)
 		val programConstructor = getTypeConstructor(programType)
 		val shaderClassName = typeElement.qualifiedName.toString()
@@ -132,7 +130,7 @@ class ProgramProcessor(private val env: ProcessingEnvironment, private val progr
 		val params = element.parameters.map { paramValues.getValue(it.simpleName.toString()) }.toTypedArray()
 		val instance = constructor.newInstance(*params)
 		val provider = instance as ShaderSourceProvider
-		return provider.getSource()
+		return provider.getSource(stage)
 	}
 
 	private fun checkProgramHasShaderParams(programConstructor: ExecutableElement, shaderConstructor: ExecutableElement, shaderClassName: String) {

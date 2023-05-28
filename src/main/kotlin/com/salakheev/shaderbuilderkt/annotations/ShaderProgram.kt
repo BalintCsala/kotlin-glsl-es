@@ -17,4 +17,4 @@ import kotlin.reflect.KClass
  */
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.SOURCE)
-annotation class ShaderProgram(val vertex: KClass<out ShaderSourceProvider>, val fragment: KClass<out ShaderSourceProvider>)
+annotation class ShaderProgram(val source: KClass<out ShaderSourceProvider>)
